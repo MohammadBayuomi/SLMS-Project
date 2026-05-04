@@ -75,4 +75,4 @@ if st.button("Run Forecast"):
 st.sidebar.divider()
 st.sidebar.write("💡 **Want to learn more?**")
 if st.sidebar.button("Meet the SLMS Team"):
-    st.switch_page("pages/1_Know_more.py")
+    st.switch_page("pages/know_more.py")
