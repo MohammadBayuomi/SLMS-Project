@@ -41,11 +41,13 @@ if st.button("Run Forecast"):
     cat_id = le_category.transform([selected_cat_name])[0]
     
     # 2. Find the latest record in your original data for that Category_Encoded
-    cat_data = df[df['Category_Encoded'] == cat_id].sort_values('Date')
-    
+    cat_data = df[df['Category'].str.strip() == selected_cat_name].sort_values('Date')
+
     if cat_data.empty:
-        st.error(f"No data found for category ID {cat_id}")
+        st.error(f"Historical data for {selected_cat_name} not found.")
     else:
+    # Now encode it ONLY for the model input
+        cat_id = le_category.transform([selected_cat_name])[0]
         latest = cat_data.iloc[-1]
         
         # 3. Create the input for the model using your exact column names
