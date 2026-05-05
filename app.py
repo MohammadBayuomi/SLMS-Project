@@ -15,11 +15,15 @@ le_state = joblib.load('le_state.joblib')
 # 2. Optimized Data Loading
 @st.cache_data
 def get_data():
-    # Use read_excel for .xlsx files
+    # 1. Load the original file
     data = pd.read_excel('historical_data.xlsx')
+    
+    # 2. THE FIX: Strip hidden spaces from the column headers
+    data.columns = data.columns.str.strip()
+    
+    # 3. Strip hidden spaces from the Category values if they were strings
+    # (Though in your image they are already numbers)
     data['Date'] = pd.to_datetime(data['Date'])
-    # Clean whitespace just in case
-    data['Category'] = data['Category'].str.strip() 
     return data
 
 df = get_data()
