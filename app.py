@@ -41,45 +41,55 @@ with col2:
 selected_date = st.date_input("Prediction Date", datetime.now())
 
 if st.button("Run Forecast"):
-    # 1. Translate user's string selection to the number in your table
+    # 1. Translate the user's selected word into the ID (e.g., "Bed" -> 23)
     cat_id = le_category.transform([selected_cat_name])[0]
     
-    # 2. Find the latest record in your original data for that Category_Encoded
-    cat_data = df[df['Category'].str.strip() == selected_cat_name].sort_values('Date')
+    # 2. FIX: Look for 'Category_Encoded' instead of 'Category'
+    cat_data = df[df['Category_Encoded'] == cat_id].sort_values('Date')
 
     if cat_data.empty:
-        st.error(f"Historical data for {selected_cat_name} not found.")
+        st.error(f"Historical data for category ID {cat_id} ({selected_cat_name}) not found in the file.")
     else:
-    # Now encode it ONLY for the model input
-        cat_id = le_category.transform([selected_cat_name])[0]
         latest = cat_data.iloc[-1]
         
-        # 3. Create the input for the model using your exact column names
+        # 3. Calculate Days_To_Xmas (needed for the variable in your metric)
+        xmas_date = datetime(selected_date.year, 12, 25)
+        days_to_xmas = (xmas_date - datetime.combine(selected_date, datetime.min.time())).days
+
+        # 4. Create X_input matching your original data's column names
         X_input = pd.DataFrame({
             'Category_Encoded': [cat_id],
             'State_Encoded': [le_state.transform([selected_state_name])[0]],
             'Month': [selected_date.month],
             'DayOfWeek': [selected_date.weekday()],
-            'Lag_1': [latest['Lag_1']], # Taking the lag directly from your table
+            'Lag_1': [latest['Lag_1']], 
             'Rolling_Mean_7': [latest['Rolling_Mean_7']],
-            'Days_To_Xmas': [days_to_xmas],
-            # Add the other columns from your image that the model needs:
             'Is_Magic_Date': [latest['Is_Magic_Date']],
             'Pre_Magic_Date': [latest['Pre_Magic_Date']],
-            'Is_Holiday': [0], # You can calculate this based on the date
-            'Is_Weekend': [1 if selected_date.weekday() >= 5 else 0]
+            'Is_Holiday': [latest['Is_Holiday']],
+            'Days_To_Xmas': [days_to_xmas],
+            'Is_Holiday_Season': [latest['Is_Holiday_Season']],
+            'Day': [selected_date.day],
+            'Is_Weekend': [1 if selected_date.weekday() >= 5 else 0],
+            'Lag_7': [latest['Lag_7']],
+            'Rolling_Max_7': [latest['Rolling_Max_7']],
+            'Rolling_Mean_30': [latest['Rolling_Mean_30']],
+            'Lag_364': [latest['Lag_364']],
+            'Rolling_Mean_3': [latest['Rolling_Mean_3']]
         })
 
-        # 4. Predict
+        # 5. Predict
         pred_log = model.predict(X_input)
         final_sales = int(np.expm1(pred_log)[0])
-        
-        # st.success(f"Predicted Sales Volume: {final_sales}")
 
         st.divider()
         st.subheader("Forecast Results:")
         st.metric(label=f"Predicted Sales for {selected_cat_name}", value=f"{final_sales} Units")
         st.write(f"Region: {selected_state_name} | Days to Christmas: {days_to_xmas}")
+        
+        # st.success(f"Predicted Sales Volume: {final_sales}")
+
+
 
 
 ## The Team page
