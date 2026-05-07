@@ -40,7 +40,7 @@ with col2:
 
 selected_date = st.date_input("Prediction Date", datetime.now())
 
-if st.button("Run Forecast"):
+if st.button("See The Future"):
     # 1. Translate the user's selected word into the ID (e.g., "Bed" -> 23)
     cat_id = le_category.transform([selected_cat_name])[0]
     
